@@ -1,9 +1,9 @@
 package org.springframework.search;
 
-import org.springframework.core.NestedCheckedException;
+import org.springframework.core.NestedRuntimeException;
 
 @SuppressWarnings("serial")
-public abstract class SearchException extends NestedCheckedException {
+public abstract class SearchException extends NestedRuntimeException {
 
 	public SearchException(String message) {
 		super(message);

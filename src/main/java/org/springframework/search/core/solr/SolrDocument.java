@@ -13,6 +13,12 @@ public class SolrDocument extends AbstractDocument {
 	public SolrDocument(org.apache.solr.common.SolrDocument solrDocument) {
 		this.solrDocument = solrDocument;
 	}
+	
+	public SolrDocument(Map<String, Object> m) {
+		org.apache.solr.common.SolrDocument nativeDocument = new org.apache.solr.common.SolrDocument();
+		nativeDocument.putAll(m);
+		this.solrDocument = nativeDocument;
+	}
 
 	public boolean containsKey(Object key) {
 		return solrDocument.containsKey(key);
@@ -64,6 +70,11 @@ public class SolrDocument extends AbstractDocument {
 	@Override
 	public void clear() {
 		solrDocument.clear();
+	}
+	
+	@Override
+	public Object getNativeDocument() {
+		return solrDocument;
 	}
 
 }

@@ -26,6 +26,7 @@ import org.springframework.search.SearchTemplate;
 
 public class ElasticSearchTemplate extends SearchTemplate implements ElasticSearchOperations {
 
+	private static final String DEFAULT = "default";
 	private Client client;
 
 	public ElasticSearchTemplate(Client client) {
@@ -37,12 +38,12 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 	protected Document buildNewDocument() {
 		return new ElasticSearchDocument(new HashMap<String, Object>());
 	}
-	
+
 	@Override
 	public QueryResponse query(String query) {
 
 		ElasticSearchQueryResponse queryResponse = new ElasticSearchQueryResponse();
-		SearchResponse response = client.prepareSearch("test").setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).setFrom(0).setSize(60).setExplain(true).execute().actionGet();
+		SearchResponse response = client.prepareSearch(DEFAULT).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).setFrom(0).setSize(60).setExplain(true).execute().actionGet();
 
 		List<ElasticSearchDocument> documents = new ArrayList<ElasticSearchDocument>((int) response.getHits().getTotalHits());
 		for (SearchHit hit : response.getHits()) {
@@ -70,7 +71,7 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 	public void add(Document document) {
 		try {
 			XContentBuilder object = buildJsonFromDocument(document);
-			IndexResponse response = client.prepareIndex("twitter", "tweet", "1").setSource(object).execute().actionGet();
+			IndexResponse response = client.prepareIndex(DEFAULT, DEFAULT, "1").setSource(object).execute().actionGet();
 		} catch (Exception e) {
 		}
 	}
@@ -89,7 +90,7 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
 		for (Document document : documents) {
 			try {
-				bulkRequest.add(client.prepareIndex("twitter", "tweet", "1").setSource(buildJsonFromDocument(document)));
+				bulkRequest.add(client.prepareIndex(DEFAULT, DEFAULT, "1").setSource(buildJsonFromDocument(document)));
 			} catch (Exception e) {
 			}
 
@@ -99,14 +100,14 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 	@Override
 	public void deleteById(String id) {
-		DeleteResponse response = client.prepareDelete("twitter", "tweet", "1").execute().actionGet();
+		DeleteResponse response = client.prepareDelete(DEFAULT, DEFAULT, "1").execute().actionGet();
 	}
 
 	@Override
 	public void deleteById(List<String> ids) {
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
 		for (String string : ids) {
-			bulkRequest.add(client.prepareDelete("twitter", "tweet", "1"));
+			bulkRequest.add(client.prepareDelete(DEFAULT, DEFAULT, "1"));
 		}
 		BulkResponse bulkResponse = bulkRequest.execute().actionGet();
 	}
@@ -120,12 +121,12 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 	@Override
 	public void update(String query) {
-		
+
 	}
 
 	@Override
 	public void updateInBatch(String query) {
-		
+
 	}
 
 }

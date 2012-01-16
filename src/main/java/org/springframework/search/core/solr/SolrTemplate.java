@@ -76,7 +76,6 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 			// TODO
 		}
 	}
-
 	@Override
 	public void add(List<Document> documents) {
 		org.apache.solr.common.SolrDocument solrDocument;
@@ -97,7 +96,7 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 			// TODO
 		}
 	}
-
+	
 	@Override
 	public void deleteById(String id) {
 		try {

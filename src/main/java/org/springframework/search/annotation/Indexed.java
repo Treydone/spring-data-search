@@ -9,10 +9,5 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.FIELD, ElementType.TYPE})
 public @interface Indexed {
 
-	/**
-     * Name of the index to use.
-     */
-    String indexName() default "";
-    
     String fieldName() default "";
 }

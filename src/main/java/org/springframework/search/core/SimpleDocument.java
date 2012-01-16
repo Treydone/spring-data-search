@@ -1,16 +1,21 @@
-package org.springframework.search.core.elasticsearch;
+package org.springframework.search.core;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.search.core.AbstractDocument;
+import org.springframework.search.Document;
 
-public class ElasticSearchDocument extends AbstractDocument {
+public class SimpleDocument implements Document {
 
 	private final Map<String, Object> source;
 
-	public ElasticSearchDocument(Map<String, Object> source) {
+	public SimpleDocument() {
+		this.source = new HashMap<String, Object>();
+	}
+
+	public SimpleDocument(Map<String, Object> source) {
 		this.source = source;
 	}
 
@@ -65,7 +70,7 @@ public class ElasticSearchDocument extends AbstractDocument {
 	public void clear() {
 		source.clear();
 	}
-	
+
 	@Override
 	public Object getNativeDocument() {
 		return source;
