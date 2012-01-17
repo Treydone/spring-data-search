@@ -1,4 +1,3 @@
-
 # Spring Search #
 
 Spring Search is an abstraction on the search layer aiming help developpers to use a search engine. 
