@@ -1,0 +1,31 @@
+
+Spring Search is an abstraction on the search layer aiming help developpers to use a search engine. 
+
+Spring Search provides a SearchTemplate with methods like the useful JdbcTemplate. Indeed, like the JdbcTemplate, you can extract the data directly from a QueryReponse, use a QueryResponseExtractor or use a DocMapper.
+
+// First build a template for Solr:
+SolrServer embeddedSolrServer = new EmbeddedSolrServer(coreContainer, "default");
+SearchOperations searchOperations = new SolrTemplate(embeddedSolrServer);
+
+// Or build a template for Elastic Search:
+Node node = NodeBuilder.nodeBuilder().client(true).node();
+Client client = node.client();
+SearchOperations searchOperations = new ElasticSearchTemplate(client);
+
+// And just do something like this:
+
+// 1- add documents or beans
+searchOperations.add(document);
+searchOperations.addBeans(bean1, bean2);
+
+// 2- retrive document using a DocMapper or via a class using @Indexed annotation
+List<DummyBean> beans = searchOperations.query("id:1234", new DocMapper<DummyBean>() {
+	@Override
+	public DummyBean docMap(Document doc) {
+		return new DummyBean((String) doc.get("id"), (Date) doc.get("last_modified"), (String) doc.get("name"));
+	}
+});
+
+List<DummyBean> beans = searchOperations.query("id:1234", DummyBean.class);
+
+// 3- have fun!
