@@ -3,12 +3,15 @@ package org.springframework.search.core.solr;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.lucene.queryParser.ParseException;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.springframework.search.Document;
+import org.springframework.search.InvalidQueryException;
 import org.springframework.search.QueryResponse;
 import org.springframework.search.SearchTemplate;
 
@@ -37,17 +40,19 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 		org.apache.solr.client.solrj.response.QueryResponse solrQueryResponse = null;
 		try {
 			solrQueryResponse = solrServer.query(solrQuery);
-		} catch (Exception e) {
-			// TODO
+		} catch (SolrServerException e) {
+			if (e.getRootCause() instanceof ParseException) {
+				throw new InvalidQueryException(query, e.getRootCause());
+			}
 		}
-
-		SolrDocumentList results = solrQueryResponse.getResults();
-		List<SolrDocument> documents = new ArrayList<SolrDocument>(results.size());
-		for (org.apache.solr.common.SolrDocument solrDocument : results) {
-			documents.add(new SolrDocument(solrDocument));
+		if (solrQueryResponse != null) {
+			SolrDocumentList results = solrQueryResponse.getResults();
+			List<SolrDocument> documents = new ArrayList<SolrDocument>(results.size());
+			for (org.apache.solr.common.SolrDocument solrDocument : results) {
+				documents.add(new SolrDocument(solrDocument));
+			}
+			queryResponse.setDocuments(documents);
 		}
-
-		queryResponse.setDocuments(documents);
 
 		return queryResponse;
 	}
@@ -76,6 +81,7 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 			// TODO
 		}
 	}
+
 	@Override
 	public void add(List<Document> documents) {
 		org.apache.solr.common.SolrDocument solrDocument;
@@ -96,7 +102,7 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 			// TODO
 		}
 	}
-	
+
 	@Override
 	public void deleteById(String id) {
 		try {

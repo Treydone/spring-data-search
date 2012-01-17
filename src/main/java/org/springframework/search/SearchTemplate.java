@@ -33,13 +33,23 @@ public abstract class SearchTemplate implements SearchOperations {
 		if (!ArrayUtils.isEmpty(params)) {
 			Iterator<Object> iterator = Arrays.asList(params).iterator();
 			Matcher matcher = NAMES_PATTERN.matcher(query);
-			StringBuffer sb = new StringBuffer();
+
+			int i=0;
+			StringBuffer sb = new StringBuffer(query.length());
 			while (matcher.find()) {
+				i++;
+				if (params.length < i) {
+					throw new InvalidParamsException("Some parameters are missing:" + Arrays.toString(params));
+				}
 				Object variableValue = iterator.next();
 				String variableValueString = getVariableValueAsString(variableValue);
 				String replacement = Matcher.quoteReplacement(variableValueString);
 				matcher.appendReplacement(sb, replacement);
 			}
+			if (params.length > i) {
+				throw new InvalidParamsException("Too much parameters for this query!" + Arrays.toString(params));
+			}
+			query = sb.toString();
 		}
 		return query(query);
 	}

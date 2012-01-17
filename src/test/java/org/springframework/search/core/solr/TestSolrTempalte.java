@@ -19,13 +19,17 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.search.DocMapper;
 import org.springframework.search.Document;
+import org.springframework.search.DocumentMappingException;
 import org.springframework.search.InvalidDocumentException;
+import org.springframework.search.InvalidParamsException;
+import org.springframework.search.InvalidQueryException;
 import org.springframework.search.QueryResponse;
 import org.springframework.search.SearchOperations;
 import org.springframework.search.core.AnythingToBeIndexedBean;
 import org.springframework.search.core.DummyBean;
 import org.springframework.search.core.EmptyBean;
 import org.springframework.search.core.SimpleDocument;
+import org.springframework.search.core.WronglyTypedBean;
 import org.xml.sax.SAXException;
 
 public class TestSolrTempalte {
@@ -97,7 +101,7 @@ public class TestSolrTempalte {
 	public void addDummyBeanAndCheckResult() {
 
 		Date today = new Date();
-		DummyBean bean = new DummyBean(1234, today, "dummy name");
+		DummyBean bean = new DummyBean("1234", today, "dummy name");
 
 		searchOperations.addBean(bean);
 
@@ -115,8 +119,8 @@ public class TestSolrTempalte {
 	public void addDummyBeansAndCheckResult() {
 
 		Date today = new Date();
-		DummyBean bean1 = new DummyBean(1234, today, "dummy name");
-		DummyBean bean2 = new DummyBean(2345, today, "dummy name 2");
+		DummyBean bean1 = new DummyBean("1234", today, "dummy name");
+		DummyBean bean2 = new DummyBean("2345", today, "dummy name 2");
 
 		searchOperations.addBeans(bean1, bean2);
 
@@ -173,8 +177,8 @@ public class TestSolrTempalte {
 	public void findAndMapADocumentWithAMapper() {
 
 		Date today = new Date();
-		DummyBean bean1 = new DummyBean(1234, today, "dummy name");
-		DummyBean bean2 = new DummyBean(2345, today, "dummy name 2");
+		DummyBean bean1 = new DummyBean("1234", today, "dummy name");
+		DummyBean bean2 = new DummyBean("2345", today, "dummy name 2");
 
 		searchOperations.addBeans(bean1, bean2);
 
@@ -182,7 +186,7 @@ public class TestSolrTempalte {
 
 			@Override
 			public DummyBean docMap(Document doc) {
-				return new DummyBean(Integer.valueOf((String) doc.get("id")), (Date) doc.get("last_modified"), (String) doc.get("name"));
+				return new DummyBean((String) doc.get("id"), (Date) doc.get("last_modified"), (String) doc.get("name"));
 			}
 
 		});
@@ -197,8 +201,8 @@ public class TestSolrTempalte {
 	public void findAndMapADocumentWithAClass() {
 
 		Date today = new Date();
-		DummyBean bean1 = new DummyBean(1234, today, "dummy name");
-		DummyBean bean2 = new DummyBean(2345, today, "dummy name 2");
+		DummyBean bean1 = new DummyBean("1234", today, "dummy name");
+		DummyBean bean2 = new DummyBean("2345", today, "dummy name 2");
 
 		searchOperations.addBeans(bean1, bean2);
 
@@ -207,6 +211,74 @@ public class TestSolrTempalte {
 		assertNotNull(beans);
 		assertEquals(1, beans.size());
 		assertEquals(bean1, beans.get(0));
+
+	}
+
+	@Test(expected = DocumentMappingException.class)
+	public void findAndMapADocumentWithAClassNotCorretlyTyped() {
+
+		Date today = new Date();
+		WronglyTypedBean bean1 = new WronglyTypedBean(1234, today);
+		WronglyTypedBean bean2 = new WronglyTypedBean(2345, today);
+
+		searchOperations.addBeans(bean1, bean2);
+
+		searchOperations.query("id:1234", WronglyTypedBean.class);
+
+	}
+
+	@Test
+	public void searchWithManyParams() {
+
+		Document document = new SimpleDocument();
+		document.put("id", "123");
+		document.put("name", "toto");
+
+		searchOperations.add(document);
+
+		QueryResponse response = searchOperations.query("id:{id} and name:{name}", new Object[] { 123, "toto" });
+		assertNotNull(response);
+		assertNotNull(response.getDocuments());
+
+		assertEquals(1, response.getDocuments().size());
+		assertEquals("toto", response.getDocuments().get(0).get("name"));
+	}
+
+	@Test
+	public void searchWithOneParam() {
+
+		Document document = new SimpleDocument();
+		document.put("id", "123");
+		document.put("name", "toto");
+
+		searchOperations.add(document);
+
+		QueryResponse response = searchOperations.query("id:{id}", new Object[] { 123 });
+		assertNotNull(response);
+		assertNotNull(response.getDocuments());
+
+		assertEquals(1, response.getDocuments().size());
+		assertEquals("toto", response.getDocuments().get(0).get("name"));
+	}
+
+	@Test(expected = InvalidQueryException.class)
+	public void searchWithInvalidQuery() {
+
+		searchOperations.query("<$'(-/*");
+
+	}
+
+	@Test(expected = InvalidParamsException.class)
+	public void searchWithNoEnoughParams() {
+
+		searchOperations.query("id:{id} and name:{name}", new Object[] { 123 });
+
+	}
+
+	@Test(expected = InvalidParamsException.class)
+	public void searchWithToMuchParams() {
+
+		searchOperations.query("id:{id}", new Object[] { 123, "toto" });
 
 	}
 }

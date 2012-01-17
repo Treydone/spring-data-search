@@ -37,7 +37,8 @@ public class IndexedFieldDocMapper<T> implements DocMapper<T> {
 				try {
 					ReflectionUtils.setField(field, bean, getValue(doc.get(fieldName), field.getType()));
 				} catch (IllegalArgumentException e) {
-					throw new DocumentMappingException("", e);
+					throw new DocumentMappingException("Unable to set the field " + field.getName() + " of type " + field.getType() + " with value " + doc.get(fieldName) + " of type "
+							+ doc.get(fieldName).getClass(), e);
 				}
 			}
 		}
