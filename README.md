@@ -20,12 +20,14 @@ Some future features:
 # Examples
 
 // First build a search template, here for Solr:
+
 ```java
 SolrServer embeddedSolrServer = new EmbeddedSolrServer(coreContainer, "default");
 SearchOperations searchOperations = new SolrTemplate(embeddedSolrServer);
 ```
 
 // Or, in the same way, build a template using Elastic Search:
+
 ```java
 Node node = NodeBuilder.nodeBuilder().client(true).node();
 Client client = node.client();
@@ -35,12 +37,14 @@ SearchOperations searchOperations = new ElasticSearchTemplate(client);
 // And just do something like this:
 
 // 1- add documents or beans
+
 ```java
 searchOperations.add(document);
 searchOperations.addBeans(bean1, bean2);
 ```
 
 // 2- retrive document using a DocMapper or via a class using @Indexed annotation
+
 ```java
 List<DummyBean> beans = searchOperations.query("id:1234", new DocMapper<DummyBean>() {
 	@Override
@@ -63,10 +67,10 @@ Todo
 
 * Maven (not already deployed):
 
-~~~~~ xml
+```xml
 <dependency>
   <groupId>org.springframework.search</groupId>
   <artifactId>spring-search</artifactId>
   <version>${version}</version>
 </dependency>
-~~~~~
+```
