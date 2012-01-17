@@ -8,6 +8,8 @@ import org.springframework.search.QueryResponse;
 public abstract class AbstractQueryResponse implements QueryResponse {
 
 	private List<? extends Document> documents;
+	
+	private Object nativeResponse;
 
 	@Override
 	public List<? extends Document> getDocuments() {
@@ -16,5 +18,13 @@ public abstract class AbstractQueryResponse implements QueryResponse {
 
 	public void setDocuments(List<? extends Document> documents) {
 		this.documents = documents;
+	}
+
+	public Object getNativeResponse() {
+		return nativeResponse;
+	}
+
+	public void setNativeResponse(Object nativeResponse) {
+		this.nativeResponse = nativeResponse;
 	}
 }

@@ -1,5 +1,6 @@
 package org.springframework.search.core.solr;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,8 @@ import org.apache.lucene.queryParser.ParseException;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
@@ -15,11 +18,22 @@ import org.springframework.search.InvalidQueryException;
 import org.springframework.search.QueryResponse;
 import org.springframework.search.SearchTemplate;
 
+/**
+ * @author Vincent Devillers
+ */
 public class SolrTemplate extends SearchTemplate implements SolrOperations {
 
 	private SolrServer solrServer;
 
 	private boolean autoCommit = true;
+
+	public SolrTemplate(String solrServerUrl) throws MalformedURLException {
+		this(new CommonsHttpSolrServer(solrServerUrl));
+	}
+
+	public SolrTemplate(String... solrServerUrls) throws MalformedURLException {
+		this(new LBHttpSolrServer(solrServerUrls));
+	}
 
 	public SolrTemplate(SolrServer solrServer) {
 		super();
@@ -40,6 +54,7 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 		org.apache.solr.client.solrj.response.QueryResponse solrQueryResponse = null;
 		try {
 			solrQueryResponse = solrServer.query(solrQuery);
+			queryResponse.setNativeResponse(solrQueryResponse);
 		} catch (SolrServerException e) {
 			if (e.getRootCause() instanceof ParseException) {
 				throw new InvalidQueryException(query, e.getRootCause());
@@ -165,6 +180,11 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 
 	public void setAutoCommit(boolean autoCommit) {
 		this.autoCommit = autoCommit;
+	}
+
+	@Override
+	public SolrServer getSolrServer() {
+		return solrServer;
 	}
 
 }

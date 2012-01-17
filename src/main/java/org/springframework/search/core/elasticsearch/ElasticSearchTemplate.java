@@ -45,6 +45,7 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		ElasticSearchQueryResponse queryResponse = new ElasticSearchQueryResponse();
 		SearchResponse response = client.prepareSearch(DEFAULT).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).setFrom(0).setSize(60).setExplain(true).execute().actionGet();
 
+		queryResponse.setNativeResponse(response);
 		List<ElasticSearchDocument> documents = new ArrayList<ElasticSearchDocument>((int) response.getHits().getTotalHits());
 		for (SearchHit hit : response.getHits()) {
 			Map<String, Object> source = hit.getSource();
