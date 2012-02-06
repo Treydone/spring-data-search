@@ -43,42 +43,43 @@ public interface SearchOperations {
 	 * 
 	 * @param document the input document
 	 */
-	void add(Document document);
+	String add(Document document);
 
 	/**
 	 * Adds a single bean
 	 * 
 	 * @param obj the input bean
 	 */
-	void addBean(Object bean);
+	String addBean(Object bean);
+
+	/**
+	 * Adds a collection of documents
+	 * 
+	 * @param docs the collection of documents
+	 * @return 
+	 */
+	List<String> add(Document... documents);
 
 	/**
 	 * Adds a collection of documents
 	 * 
 	 * @param docs the collection of documents
 	 */
-	void add(Document... documents);
-
-	/**
-	 * Adds a collection of documents
-	 * 
-	 * @param docs the collection of documents
-	 */
-	void add(List<Document> documents);
+	List<String> add(List<Document> documents);
 
 	/**
 	 * Adds a collection of beans
 	 * 
 	 * @param beans the collection of beans
 	 */
-	void addBeans(List<Object> beans);
+	List<String> addBeans(List<Object> beans);
 
 	/**
 	 * Adds a collection of beans
 	 * 
 	 * @param beans the collection of beans
 	 */
-	void addBeans(Object... beans);
+	List<String> addBeans(Object... beans);
 
 	/**
 	 * Deletes a single document by unique ID
@@ -109,5 +110,10 @@ public interface SearchOperations {
 	 * Issues a ping request to check if the server is alive
 	 */
 	boolean isAlive();
+
+	/**
+	 * Refersh or optimize the indexes.
+	 */
+	void refresh();
 
 }

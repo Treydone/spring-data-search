@@ -10,6 +10,10 @@ public class ElasticSearchDocument extends AbstractDocument {
 
 	private final Map<String, Object> source;
 
+	private String type;
+
+	private String id;
+
 	public ElasticSearchDocument(Map<String, Object> source) {
 		this.source = source;
 	}
@@ -65,10 +69,25 @@ public class ElasticSearchDocument extends AbstractDocument {
 	public void clear() {
 		source.clear();
 	}
-	
+
 	@Override
 	public Object getNativeDocument() {
 		return source;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 }

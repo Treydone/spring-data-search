@@ -11,7 +11,7 @@
 		<spring.version>3.1.0.RELEASE</spring.version>
 
 		<slf4j.version>1.6.1</slf4j.version>
-		<jackson.version>1.9.1</jackson.version>
+		<jackson.version>1.9.2</jackson.version>
 
 		<junit.version>4.10</junit.version>
 		<easymock.version>3.0</easymock.version>
@@ -162,6 +162,11 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>0.9.26</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
 		</dependency>
 
 		<!-- Test -->

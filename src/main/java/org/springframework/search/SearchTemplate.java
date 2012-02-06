@@ -85,21 +85,23 @@ public abstract class SearchTemplate implements SearchOperations {
 	}
 
 	@Override
-	public void add(Document... documents) {
-		add(Arrays.asList(documents));
+	public List<String> add(Document... documents) {
+		return add(Arrays.asList(documents));
 	}
 
 	@Override
-	public void add(List<Document> documents) {
+	public List<String> add(List<Document> documents) {
+		List<String> ids = new ArrayList<String>(documents.size());
 		for (Document document : documents) {
-			add(document);
+			ids.add(add(document));
 		}
+		return ids;
 	}
 
 	@Override
-	public void addBean(Object bean) {
+	public String addBean(Object bean) {
 		Document document = extractDocumentFromObject(bean);
-		add(document);
+		return add(document);
 	}
 
 	@Override
@@ -112,7 +114,7 @@ public abstract class SearchTemplate implements SearchOperations {
 		return query(query, params, new IndexedFieldDocMapper<T>(clazz));
 	}
 
-	private Document extractDocumentFromObject(Object bean) {
+	protected Document extractDocumentFromObject(Object bean) {
 		Map<String, Object> results = new HashMap<String, Object>();
 		Field[] fields = bean.getClass().getDeclaredFields();
 		for (Field field : fields) {
@@ -142,12 +144,12 @@ public abstract class SearchTemplate implements SearchOperations {
 	}
 
 	@Override
-	public void addBeans(Object... beans) {
-		addBeans(Arrays.asList(beans));
+	public List<String> addBeans(Object... beans) {
+		return addBeans(Arrays.asList(beans));
 	}
 
 	@Override
-	public void addBeans(List<Object> beans) {
+	public List<String> addBeans(List<Object> beans) {
 		List<Document> documents = new ArrayList<Document>(beans.size());
 
 		for (Object bean : beans) {
@@ -155,6 +157,6 @@ public abstract class SearchTemplate implements SearchOperations {
 			documents.add(document);
 		}
 
-		add(documents);
+		return add(documents);
 	}
 }

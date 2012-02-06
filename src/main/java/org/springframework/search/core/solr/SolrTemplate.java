@@ -11,6 +11,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.springframework.search.Document;
@@ -84,21 +85,24 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 	}
 
 	@Override
-	public void add(Document document) {
+	public String add(Document document) {
 		org.apache.solr.common.SolrDocument solrDocument = new org.apache.solr.common.SolrDocument();
 		solrDocument.putAll(document);
+		// TODO id document
+		String id = null;
 		try {
-			solrServer.add(ClientUtils.toSolrInputDocument(solrDocument));
+			UpdateResponse updateResponse = solrServer.add(ClientUtils.toSolrInputDocument(solrDocument));
 			if (isAutoCommit()) {
 				commit();
 			}
 		} catch (Exception e) {
 			// TODO
 		}
+		return id;
 	}
 
 	@Override
-	public void add(List<Document> documents) {
+	public List<String> add(List<Document> documents) {
 		org.apache.solr.common.SolrDocument solrDocument;
 		for (Document document : documents) {
 			solrDocument = new org.apache.solr.common.SolrDocument();
@@ -116,6 +120,8 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 		} catch (Exception e) {
 			// TODO
 		}
+		// TODO
+		return null;
 	}
 
 	@Override
@@ -185,6 +191,15 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 	@Override
 	public SolrServer getSolrServer() {
 		return solrServer;
+	}
+
+	@Override
+	public void refresh() {
+		try {
+			solrServer.optimize();
+		} catch (Exception e) {
+			// TODO
+		}
 	}
 
 }
