@@ -1,6 +1,7 @@
 package org.springframework.search.core.elasticsearch;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,11 +9,15 @@ import org.springframework.search.core.AbstractDocument;
 
 public class ElasticSearchDocument extends AbstractDocument {
 
-	private final Map<String, Object> source;
+	private Map<String, Object> source;
 
 	private String type;
 
 	private String id;
+
+	public ElasticSearchDocument() {
+		this.source = new HashMap<String, Object>();
+	}
 
 	public ElasticSearchDocument(Map<String, Object> source) {
 		this.source = source;

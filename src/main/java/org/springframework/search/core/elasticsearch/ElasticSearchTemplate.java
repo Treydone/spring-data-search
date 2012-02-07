@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.admin.cluster.ping.single.SinglePingRequest;
 import org.elasticsearch.action.admin.cluster.ping.single.SinglePingResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -21,25 +21,29 @@ import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHit;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.search.Document;
 import org.springframework.search.DocumentNotFoundException;
 import org.springframework.search.Failure;
+import org.springframework.search.InvalidQueryException;
 import org.springframework.search.QueryResponse;
+import org.springframework.search.SearchException;
 import org.springframework.search.SearchTemplate;
 import org.springframework.search.core.SimpleFailure;
 import org.springframework.util.StringUtils;
 
-public class ElasticSearchTemplate extends SearchTemplate implements ElasticSearchOperations {
+public class ElasticSearchTemplate extends SearchTemplate implements ElasticSearchOperations, InitializingBean {
 
 	private static final String DEFAULT = "default";
 
 	private String indexName = DEFAULT;
 
 	private Node node;
+
+	private ObjectMapper objectMapper;
 
 	public ElasticSearchTemplate(Node node) {
 		super();
@@ -53,6 +57,14 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 	}
 
 	@Override
+	public void afterPropertiesSet() {
+		if (objectMapper == null) {
+			objectMapper = new ObjectMapper();
+		}
+
+	}
+
+	@Override
 	protected Document buildNewDocument() {
 		return new ElasticSearchDocument(new HashMap<String, Object>());
 	}
@@ -63,15 +75,20 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 		SearchRequest request = Requests.searchRequest();
 
-		// SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-		// sourceBuilder.query(query);
-
 		request.source(query);
 		request.indices(indexName);
 		request.searchType(SearchType.QUERY_AND_FETCH);
 
-		SearchResponse response = client.search(request).actionGet();
-
+		SearchResponse response;
+		try {
+			response = client.search(request).actionGet();
+		} catch (ElasticSearchException e) {
+			if (e.getDetailedMessage().contains("Failed to parse source")) {
+				throw new InvalidQueryException(query, e.unwrapCause());
+			}
+			throw new SearchException(query, e);
+		}
+		
 		ElasticSearchQueryResponse queryResponse = new ElasticSearchQueryResponse();
 		client.close();
 
@@ -91,7 +108,11 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		List<ElasticSearchDocument> documents = new ArrayList<ElasticSearchDocument>((int) response.getHits().getTotalHits());
 		for (SearchHit hit : response.getHits()) {
 			if (hit != null) {
-				documents.add(new ElasticSearchDocument(hit.getSource()));
+				try {
+					documents.add(new ElasticSearchDocument(objectMapper.readValue(hit.source(), ElasticSearchDocument.class)));
+				} catch (Exception e) {
+					throw new SearchException("Unable to parse the response!", e);
+				}
 			}
 		}
 		queryResponse.setDocuments(documents);
@@ -115,10 +136,10 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		Client client = node.client();
 		String id = null;
 		try {
-			IndexRequest request = buildIndexRequestForDocument(document);
-			IndexResponse indexResponse = client.index(request).actionGet();
+			IndexResponse indexResponse = client.index(buildIndexRequestForDocument(document)).actionGet();
 			id = indexResponse.getId();
 		} catch (Exception e) {
+			throw new SearchException("Unable to add the document!", e);
 		}
 		client.close();
 		return id;
@@ -134,12 +155,12 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 				IndexRequest request = buildIndexRequestForDocument(document);
 				bulkRequest.add(request);
 			} catch (Exception e) {
+				throw new SearchException("Unable to add the document!", e);
 			}
-
 		}
 		BulkResponse bulkResponse = bulkRequest.execute().actionGet();
 		client.close();
-		
+
 		List<String> ids = new ArrayList<String>(bulkResponse.items().length);
 
 		for (BulkItemResponse bulkItemResponse : bulkResponse.items()) {
@@ -174,13 +195,8 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		return request;
 	}
 
-	private XContentBuilder buildJsonFromDocument(Document document) throws IOException {
-		XContentBuilder object = XContentFactory.jsonBuilder().startObject();
-		for (Entry<String, Object> entry : document.entrySet()) {
-			object.field(entry.getKey(), entry.getValue());
-		}
-		object.endObject();
-		return object;
+	private String buildJsonFromDocument(Document document) throws IOException {
+		return objectMapper.writeValueAsString(document);
 	}
 
 	@Override
@@ -217,9 +233,11 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 	@Override
 	public void deleteByQuery(String query) {
-		DeleteByQueryRequest request = new DeleteByQueryRequest();
-		request.query(query);
-		node.client().deleteByQuery(request).actionGet();
+		node.client().deleteByQuery(Requests.deleteByQueryRequest(indexName).query(query)).actionGet();
+	}
+
+	public void deleteAll() {
+		deleteByQuery(new MatchAllQueryBuilder().toString());
 	}
 
 	@Override
@@ -245,5 +263,17 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 	public Node getNode() {
 		return node;
+	}
+
+	public void setIndexName(String indexName) {
+		this.indexName = indexName;
+	}
+
+	public void setNode(Node node) {
+		this.node = node;
+	}
+
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
 	}
 }

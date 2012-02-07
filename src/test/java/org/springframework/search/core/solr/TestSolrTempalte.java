@@ -21,7 +21,6 @@ import org.springframework.search.DocMapper;
 import org.springframework.search.Document;
 import org.springframework.search.DocumentMappingException;
 import org.springframework.search.InvalidDocumentException;
-import org.springframework.search.InvalidParamsException;
 import org.springframework.search.InvalidQueryException;
 import org.springframework.search.QueryResponse;
 import org.springframework.search.SearchOperations;
@@ -265,20 +264,6 @@ public class TestSolrTempalte {
 	public void searchWithInvalidQuery() {
 
 		searchOperations.query("<$'(-/*");
-
-	}
-
-	@Test(expected = InvalidParamsException.class)
-	public void searchWithNoEnoughParams() {
-
-		searchOperations.query("id:{id} and name:{name}", new Object[] { 123 });
-
-	}
-
-	@Test(expected = InvalidParamsException.class)
-	public void searchWithToMuchParams() {
-
-		searchOperations.query("id:{id}", new Object[] { 123, "toto" });
 
 	}
 }

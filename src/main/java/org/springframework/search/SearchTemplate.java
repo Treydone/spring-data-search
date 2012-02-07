@@ -4,18 +4,15 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.search.annotation.Indexed;
 import org.springframework.search.core.DocMapperQueryResponseExtractor;
 import org.springframework.search.core.IndexedFieldDocMapper;
+import org.springframework.search.core.QueryBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -23,39 +20,12 @@ public abstract class SearchTemplate implements SearchOperations {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTemplate.class);
 
-	/** Captures URI template variable names. */
-	private static final Pattern NAMES_PATTERN = Pattern.compile("\\{([^/]+?)\\}");
-
 	protected abstract Document buildNewDocument();
 
 	@Override
 	public QueryResponse query(String query, Object[] params) {
-		if (!ArrayUtils.isEmpty(params)) {
-			Iterator<Object> iterator = Arrays.asList(params).iterator();
-			Matcher matcher = NAMES_PATTERN.matcher(query);
-
-			int i=0;
-			StringBuffer sb = new StringBuffer(query.length());
-			while (matcher.find()) {
-				i++;
-				if (params.length < i) {
-					throw new InvalidParamsException("Some parameters are missing:" + Arrays.toString(params));
-				}
-				Object variableValue = iterator.next();
-				String variableValueString = getVariableValueAsString(variableValue);
-				String replacement = Matcher.quoteReplacement(variableValueString);
-				matcher.appendReplacement(sb, replacement);
-			}
-			if (params.length > i) {
-				throw new InvalidParamsException("Too much parameters for this query!" + Arrays.toString(params));
-			}
-			query = sb.toString();
-		}
+		query = QueryBuilder.resolveParams(query, params);
 		return query(query);
-	}
-
-	private static String getVariableValueAsString(Object variableValue) {
-		return variableValue != null ? variableValue.toString() : "";
 	}
 
 	@Override

@@ -17,6 +17,7 @@ import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.logging.slf4j.Slf4jESLoggerFactory;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,6 +56,7 @@ public class TestElasticSearchTemplate {
 		System.out.println("Started Elastic");
 
 		searchOperations = new ElasticSearchTemplate(node);
+		searchOperations.afterPropertiesSet();
 
 		// Create index
 		node.client().admin().indices().create(Requests.createIndexRequest(searchOperations.getIndexName())).actionGet();
@@ -64,6 +66,12 @@ public class TestElasticSearchTemplate {
 	@AfterClass
 	public static void afterClass() {
 		node.close();
+		FileUtils.deleteQuietly(indexerDataDir);
+	}
+
+	@After
+	public void afterEachTest() {
+		searchOperations.deleteAll();
 	}
 
 	@Test
@@ -140,7 +148,7 @@ public class TestElasticSearchTemplate {
 		assertEquals(1, response.getDocuments().size());
 		assertEquals("dummy name", response.getDocuments().get(0).get("name"));
 		assertEquals("1234", response.getDocuments().get(0).get("id"));
-		assertEquals(today, response.getDocuments().get(0).get("last_modified"));
+		assertEquals(today.getTime(), response.getDocuments().get(0).get("last_modified"));
 	}
 
 	@Test
@@ -153,7 +161,7 @@ public class TestElasticSearchTemplate {
 		searchOperations.addBeans(bean1, bean2);
 		searchOperations.refresh();
 
-		QueryResponse response = searchOperations.query("{\"query\" : {\"field\" : { \"id\" : *}}}");
+		QueryResponse response = searchOperations.query("{\"sort\" : [{ \"id\" : {\"order\" : \"asc\"} }], \"query\" : {\"match_all\" : { }}}");
 		assertNotNull(response);
 		assertNotNull(response.getDocuments());
 
@@ -161,11 +169,11 @@ public class TestElasticSearchTemplate {
 
 		assertEquals("dummy name", response.getDocuments().get(0).get("name"));
 		assertEquals("1234", response.getDocuments().get(0).get("id"));
-		assertEquals(today, response.getDocuments().get(0).get("last_modified"));
+		assertEquals(today.getTime(), response.getDocuments().get(0).get("last_modified"));
 
 		assertEquals("dummy name 2", response.getDocuments().get(1).get("name"));
 		assertEquals("2345", response.getDocuments().get(1).get("id"));
-		assertEquals(today, response.getDocuments().get(1).get("last_modified"));
+		assertEquals(today.getTime(), response.getDocuments().get(1).get("last_modified"));
 	}
 
 	@Test(expected = InvalidDocumentException.class)
@@ -173,7 +181,6 @@ public class TestElasticSearchTemplate {
 
 		EmptyBean bean = new EmptyBean();
 		searchOperations.addBean(bean);
-		
 
 	}
 
@@ -267,8 +274,9 @@ public class TestElasticSearchTemplate {
 		document.put("name", "toto");
 
 		searchOperations.add(document);
+		searchOperations.refresh();
 
-		QueryResponse response = searchOperations.query("id:{id} and name:{name}", new Object[] { 123, "toto" });
+		QueryResponse response = searchOperations.query("{\"query\" : {\"field\" : { \"id\" : \"{id}\", \"name\" : \"{name}\"}}}", new Object[] { 123, "toto" });
 		assertNotNull(response);
 		assertNotNull(response.getDocuments());
 
@@ -284,6 +292,7 @@ public class TestElasticSearchTemplate {
 		document.put("name", "toto");
 
 		searchOperations.add(document);
+		searchOperations.refresh();
 
 		QueryResponse response = searchOperations.query("{\"query\" : {\"field\" : { \"id\" : \"{id}\"}}}", new Object[] { 123 });
 		assertNotNull(response);

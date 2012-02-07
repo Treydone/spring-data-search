@@ -56,7 +56,7 @@ public interface SearchOperations {
 	 * Adds a collection of documents
 	 * 
 	 * @param docs the collection of documents
-	 * @return 
+	 * @return
 	 */
 	List<String> add(Document... documents);
 
@@ -101,6 +101,11 @@ public interface SearchOperations {
 	 * @param query the query expressing what documents to delete
 	 */
 	void deleteByQuery(String query);
+
+	/**
+	 * Deletes all the documents from the index.
+	 */
+	void deleteAll();
 
 	void update(String query);
 
