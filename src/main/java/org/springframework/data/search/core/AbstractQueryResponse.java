@@ -9,7 +9,7 @@ public abstract class AbstractQueryResponse implements QueryResponse {
 
 	private List<? extends Document> documents;
 
-	private Object nativeResponse;
+	private long elapsedTime;
 
 	@Override
 	public List<? extends Document> getDocuments() {
@@ -20,11 +20,11 @@ public abstract class AbstractQueryResponse implements QueryResponse {
 		this.documents = documents;
 	}
 
-	public Object getNativeResponse() {
-		return nativeResponse;
+	public long getElapsedTime() {
+		return elapsedTime;
 	}
 
-	public void setNativeResponse(Object nativeResponse) {
-		this.nativeResponse = nativeResponse;
+	public void setElapsedTime(long elapsedTime) {
+		this.elapsedTime = elapsedTime;
 	}
 }

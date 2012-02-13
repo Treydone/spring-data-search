@@ -82,16 +82,23 @@ public class SolrTemplate extends SearchTemplate implements SolrOperations {
 	@Override
 	public QueryResponse query(String query) throws DataAccessException {
 
-		SolrQueryResponse queryResponse = new SolrQueryResponse();
-
 		SolrQuery solrQuery = new SolrQuery(query);
 		org.apache.solr.client.solrj.response.QueryResponse solrQueryResponse = null;
+
 		try {
 			solrQueryResponse = searchServer.query(solrQuery);
-			queryResponse.setNativeResponse(solrQueryResponse);
 		} catch (SolrServerException e) {
 			throw potentiallyConvertCheckedException(new RuntimeException(e.getCause()));
 		}
+
+		SolrQueryResponse queryResponse = new SolrQueryResponse();
+		// Setting the native response...
+		queryResponse.setNativeResponse(solrQueryResponse);
+
+		// ... the elapsed time...
+		queryResponse.setElapsedTime(solrQueryResponse.getElapsedTime());
+
+		// ... and the docs...
 		if (solrQueryResponse != null) {
 			SolrDocumentList results = solrQueryResponse.getResults();
 			List<SolrDocument> documents = new ArrayList<SolrDocument>(results.size());

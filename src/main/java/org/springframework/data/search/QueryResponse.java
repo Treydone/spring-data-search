@@ -7,4 +7,6 @@ public interface QueryResponse {
 	List<? extends Document> getDocuments();
 	
 	Object getNativeResponse();
+	
+	long getElapsedTime();
 }

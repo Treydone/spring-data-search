@@ -65,8 +65,8 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 
 	@Override
 	public QueryResponse query(String query) {
-		Client client = node.client();
 
+		Client client = node.client();
 		SearchRequest request = Requests.searchRequest();
 
 		request.source(query);
@@ -79,12 +79,15 @@ public class ElasticSearchTemplate extends SearchTemplate implements ElasticSear
 		} catch (RuntimeException e) {
 			throw potentiallyConvertCheckedException(e);
 		}
+		client.close();
 
 		ElasticSearchQueryResponse queryResponse = new ElasticSearchQueryResponse();
-		client.close();
 
 		// Setting the native response...
 		queryResponse.setNativeResponse(response);
+		
+		//... the elapsed time...
+		queryResponse.setElapsedTime(response.getTookInMillis());
 
 		// ... and the docs...
 		List<ElasticSearchDocument> documents = new ArrayList<ElasticSearchDocument>((int) response.getHits().getTotalHits());
