@@ -1,4 +1,4 @@
-# Spring Search #
+# Spring Data Search #
 
 Spring Search is an abstraction on the search layer aiming help developpers to use a search engine. 
 
@@ -67,10 +67,36 @@ Todo
 
 * Maven (not already deployed):
 
+Core:
+
 ```xml
 <dependency>
   <groupId>org.springframework.search</groupId>
-  <artifactId>spring-search</artifactId>
+  <artifactId>spring-data-search-core</artifactId>
+  <version>${version}</version>
+</dependency>
+```
+Connectors:
+
+```xml
+<dependency>
+  <groupId>org.springframework.search</groupId>
+  <artifactId>spring-data-search-solr</artifactId>
+  <version>${version}</version>
+</dependency>
+<dependency>
+  <groupId>org.springframework.search</groupId>
+  <artifactId>spring-data-search-elasticsearch</artifactId>
+  <version>${version}</version>
+</dependency>
+<dependency>
+  <groupId>org.springframework.search</groupId>
+  <artifactId>spring-data-search-compass</artifactId>
+  <version>${version}</version>
+</dependency>
+<dependency>
+  <groupId>org.springframework.search</groupId>
+  <artifactId>spring-data-search-hibernate</artifactId>
   <version>${version}</version>
 </dependency>
 ```
