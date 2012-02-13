@@ -9,9 +9,10 @@
 	</parent>
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-search-core</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
 	<name>Spring Data Search Core</name>
 	<packaging>jar</packaging>
+	
+	<description>An abstraction layer for search engine using Spring Data</description>
 
 	<dependencies>
 

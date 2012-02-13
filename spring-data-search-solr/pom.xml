@@ -11,6 +11,8 @@
 	<artifactId>spring-data-search-solr</artifactId>
 	<name>Spring Data Search Solr</name>
 	<packaging>jar</packaging>
+	
+	<description>An abstraction layer for search engine using Spring Data</description>
 
 	<dependencies>
 
