@@ -8,7 +8,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-search-hibernate</artifactId>
+	<artifactId>spring-data-search-compass</artifactId>
 	<name>Spring Data Search Compass</name>
 	<packaging>jar</packaging>
 	
